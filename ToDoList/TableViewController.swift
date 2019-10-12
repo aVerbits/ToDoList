@@ -13,7 +13,11 @@ class TableViewController: UITableViewController {
     
     @IBAction func pushEditAction(_ sender: Any) {
         tableView.setEditing(!tableView.isEditing, animated: true)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3){
+            self.tableView.reloadData()
+        }
     }
+    
     @IBAction func pushAddAction(_ sender: Any) {
         let alertController = UIAlertController (title: "Create new item", message: nil, preferredStyle: .alert)
         alertController.addTextField { (textField) in
@@ -44,6 +48,8 @@ class TableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        tableView.tableFooterView = UIView()
+        tableView.backgroundColor = UIColor.groupTableViewBackground
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 
@@ -76,10 +82,18 @@ class TableViewController: UITableViewController {
             cell.textLabel?.text = currentItem ["Name"] as? String
         
         if (currentItem ["isCompleted"] as? Bool) == true {
-            cell.accessoryType = .checkmark
+            cell.imageView?.image = #imageLiteral(resourceName: "check")
         }else{
-            cell.accessoryType = .none
-            
+            cell.imageView?.image = #imageLiteral(resourceName: "uncheck")
+
+        }
+        
+        if tableView.isEditing {
+            cell.textLabel?.alpha = 0.4
+            cell.imageView?.alpha = 0.4
+        } else {
+            cell.textLabel?.alpha = 1
+            cell.imageView?.alpha = 1
         }
         
         return cell
@@ -109,10 +123,10 @@ class TableViewController: UITableViewController {
         tableView.deselectRow (at: indexPath, animated: true)
         
         if changeState (at: indexPath.row){
-            tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
+            tableView.cellForRow(at: indexPath)?.imageView?.image = #imageLiteral(resourceName: "check")
 
         }else{
-            tableView.cellForRow(at: indexPath)?.accessoryType = .none
+            tableView.cellForRow(at: indexPath)?.imageView?.image = #imageLiteral(resourceName: "uncheck")
 
         }
         
@@ -124,15 +138,24 @@ class TableViewController: UITableViewController {
     // Override to support rearranging the table view.
     override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
         moveItem(fromIndex: fromIndexPath.row , toIndex: to.row)
-//        let from = ToDoItems[fromIndexPath.row]
-//        ToDoItems.remove(at: fromIndexPath.row)
-//        ToDoItems.insert(from, at: to.row)
+        let from = ToDoItems[fromIndexPath.row]//
+        ToDoItems.remove(at: fromIndexPath.row)
+        ToDoItems.insert(from, at: to.row)//
         tableView.reloadData()
-//
         
     }
     
+    override func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCellEditingStyle {
+        if tableView.isEditing {
+            return .none
+        } else {
+            return .delete
+        }
+    }
 
+    override func tableView(_ tableView: UITableView, shouldIndentWhileEditingRowAt indexPath: IndexPath) -> Bool {
+        return false
+    }
     /*
     // Override to support conditional rearranging of the table view.
     override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
